@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SkeuoCard, SkeuoButton, SkeuoInput, SkeuoTextarea, SkeuoBadge } from "@/components/Skeuo";
-import { Edit2, Save, X, Mail, Phone, MapPin } from "lucide-react";
+import { Edit2, Save, X, Mail, Phone, MapPin, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Profile() {
@@ -11,6 +11,8 @@ export default function Profile() {
     const [editing, setEditing] = useState(false);
     const [form, setForm] = useState(user || {});
     const [trips, setTrips] = useState([]);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
     useEffect(() => { setForm(user || {}); }, [user]);
     useEffect(() => {
@@ -18,12 +20,32 @@ export default function Profile() {
     }, []);
 
     const onChange = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+    
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+    
     const save = async () => {
         try {
-            await api.put("/users/me", form);
+            const formData = new FormData();
+            Object.entries(form).forEach(([key, value]) => {
+                if (value) formData.append(key, value);
+            });
+            if (selectedFile) {
+                formData.append("photo", selectedFile);
+            }
+            
+            await api.put("/users/me", formData);
+            
             await refresh();
             toast.success("Profile updated");
             setEditing(false);
+            setSelectedFile(null);
+            setPreviewUrl(null);
         } catch {
             toast.error("Update failed");
         }
@@ -37,7 +59,26 @@ export default function Profile() {
     return (
         <div className="space-y-8" data-testid="profile-page">
             <SkeuoCard className="flex flex-col md:flex-row gap-8 items-start">
-                <img src={user.profile_photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200"} alt="me" className="w-40 h-40 rounded-2xl object-cover shadow-skeuo-raised" />
+                <div className="flex flex-col items-center gap-3">
+                    <img 
+                        src={previewUrl || user.profile_photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200"} 
+                        alt="me" 
+                        className="w-40 h-40 rounded-2xl object-cover shadow-skeuo-raised" 
+                    />
+                    {editing && (
+                        <label className="cursor-pointer">
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={handleFileChange}
+                            />
+                            <SkeuoButton variant="secondary" as="div" className="text-xs">
+                                <Upload className="w-4 h-4 inline mr-2" />Upload Photo
+                            </SkeuoButton>
+                        </label>
+                    )}
+                </div>
                 <div className="flex-1 w-full">
                     {!editing ? (
                         <>
@@ -65,7 +106,7 @@ export default function Profile() {
                             <SkeuoInput placeholder="Photo URL" value={form.profile_photo || ""} onChange={onChange("profile_photo")} />
                             <SkeuoTextarea className="sm:col-span-2" rows={3} placeholder="Additional Info" value={form.additional_info || ""} onChange={onChange("additional_info")} />
                             <div className="sm:col-span-2 flex gap-2 justify-end">
-                                <SkeuoButton variant="ghost" onClick={() => { setEditing(false); setForm(user); }}><X className="w-4 h-4 inline mr-2" />Cancel</SkeuoButton>
+                                <SkeuoButton variant="ghost" onClick={() => { setEditing(false); setForm(user); setSelectedFile(null); setPreviewUrl(null); }}><X className="w-4 h-4 inline mr-2" />Cancel</SkeuoButton>
                                 <SkeuoButton onClick={save} data-testid="profile-save"><Save className="w-4 h-4 inline mr-2" />Save</SkeuoButton>
                             </div>
                         </div>
