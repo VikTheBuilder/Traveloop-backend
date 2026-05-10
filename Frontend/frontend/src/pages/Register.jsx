@@ -18,21 +18,44 @@ export default function Register() {
     const nav = useNavigate();
     const [form, setForm] = useState({
         first_name: "", last_name: "", email: "", password: "",
-    phone: "", city: "", country: "", additional_info: "",
-    photo: AVATAR_OPTIONS[0],
+        phone: "", city: "", country: "", additional_info: "",
     });
+    const [photo, setPhoto] = useState(null);
+    const [preview, setPreview] = useState(AVATAR_OPTIONS[0]);
     const [err, setErr] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    
     const onChange = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+    const onFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPhoto(file);
+            setPreview(URL.createObjectURL(file));
+        }
+    };
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        setSubmitting(true); setErr("");
-    try {
-            await register(form);
+        setSubmitting(true); 
+        setErr("");
+        
+        const formData = new FormData();
+        Object.keys(form).forEach(key => {
+            formData.append(key, form[key]);
+        });
+        if (photo) {
+            formData.append('photo', photo);
+        } else {
+            // If no photo uploaded, maybe use a default or handle as needed
+            // The backend expects 'photo' if we want to save it
+        }
+
+        try {
+            await register(formData);
             toast.success("Account created. Bon voyage!");
-      nav("/");
-    } catch (e) {
+            nav("/");
+        } catch (e) {
             setErr(formatApiError(e.response?.data?.detail) || e.message);
         } finally {
             setSubmitting(false);
@@ -44,27 +67,27 @@ export default function Register() {
             <div className="max-w-3xl mx-auto">
                 <SkeuoCard className="p-8 sm:p-10" data-testid="register-card">
                     <div className="flex flex-col items-center mb-6">
-                        <div className="relative">
-                            <img src={form.photo} alt="avatar" className="w-24 h-24 rounded-full object-cover shadow-skeuo-raised" />
+                        <div className="relative group cursor-pointer">
+                            <input 
+                                type="file" 
+                                id="photo-upload" 
+                                className="hidden" 
+                                accept="image/*" 
+                                onChange={onFileChange} 
+                            />
+                            <label htmlFor="photo-upload" className="cursor-pointer block">
+                                <img src={preview} alt="avatar" className="w-24 h-24 rounded-full object-cover shadow-skeuo-raised group-hover:opacity-80 transition-opacity" />
                                 <div className="absolute -bottom-1 -right-1 bg-ocean-600 rounded-full p-2 shadow-skeuo-ocean">
                                     <Camera className="w-4 h-4 text-white" />
-              </div>
-            </div>
-        <h1 className="text-3xl font-bold text-sandy-900 mt-4">Create your traveler profile</h1>
-            <p className="text-sandy-700 text-sm">Tell us a bit about yourself — we'll personalize your itineraries.</p>
-                <div className="flex gap-3 mt-4">
-    {
-        AVATAR_OPTIONS.map((url) => (
-            <button key={url} type="button" onClick={() => setForm({ ...form, photo: url })}
-                  className={`w-12 h-12 rounded-full overflow-hidden transition-all ${form.photo === url ?"ring-4 ring-ocean-400" : "opacity-70 hover:opacity-100"}`}>
-        <img src={url} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))
-    }
-            </div>
-          </div>
+                                </div>
+                            </label>
+                        </div>
+                        <h1 className="text-3xl font-bold text-sandy-900 mt-4">Create your traveler profile</h1>
+                        <p className="text-sandy-700 text-sm">Tell us a bit about yourself — we'll personalize your itineraries.</p>
+                        <p className="text-xs text-sandy-500 mt-2">Click the photo to upload your own image</p>
+                    </div>
 
-        <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div> <label className="text-sm font-semibold text-sandy-800">First Name</label><SkeuoInput data-testid="reg-first-name" value={form.first_name} onChange={onChange("first_name")} required /></div>
                 <div> <label className="text-sm font-semibold text-sandy-800">Last Name</label><SkeuoInput data-testid="reg-last-name" value={form.last_name} onChange={onChange("last_name")} required /></div>
                     <div> <label className="text-sm font-semibold text-sandy-800">Email</label><SkeuoInput data-testid="reg-email" type="email" value={form.email} onChange={onChange("email")} required /></div>

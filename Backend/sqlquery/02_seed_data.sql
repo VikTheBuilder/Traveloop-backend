@@ -5,17 +5,17 @@
 -- ============================================================
 -- USERS  (10 users, 1 admin)
 -- ============================================================
-INSERT INTO users (id, name, email, password_hash, profile_photo, language, is_admin) VALUES
-('a1000000-0000-0000-0000-000000000001', 'Aarav Shah',       'aarav@example.com',    '$2b$12$KIXhash1', 'https://i.pravatar.cc/150?img=1',  'en', FALSE),
-('a1000000-0000-0000-0000-000000000002', 'Priya Mehta',      'priya@example.com',    '$2b$12$KIXhash2', 'https://i.pravatar.cc/150?img=2',  'en', FALSE),
-('a1000000-0000-0000-0000-000000000003', 'Rohan Verma',      'rohan@example.com',    '$2b$12$KIXhash3', 'https://i.pravatar.cc/150?img=3',  'hi', FALSE),
-('a1000000-0000-0000-0000-000000000004', 'Sofia Patel',      'sofia@example.com',    '$2b$12$KIXhash4', 'https://i.pravatar.cc/150?img=4',  'en', FALSE),
-('a1000000-0000-0000-0000-000000000005', 'Liam Chen',        'liam@example.com',     '$2b$12$KIXhash5', 'https://i.pravatar.cc/150?img=5',  'en', FALSE),
-('a1000000-0000-0000-0000-000000000006', 'Emma Nakamura',    'emma@example.com',     '$2b$12$KIXhash6', 'https://i.pravatar.cc/150?img=6',  'en', FALSE),
-('a1000000-0000-0000-0000-000000000007', 'Carlos Ramírez',   'carlos@example.com',   '$2b$12$KIXhash7', 'https://i.pravatar.cc/150?img=7',  'es', FALSE),
-('a1000000-0000-0000-0000-000000000008', 'Aisha Khan',       'aisha@example.com',    '$2b$12$KIXhash8', 'https://i.pravatar.cc/150?img=8',  'en', FALSE),
-('a1000000-0000-0000-0000-000000000009', 'Ethan Williams',   'ethan@example.com',    '$2b$12$KIXhash9', 'https://i.pravatar.cc/150?img=9',  'en', FALSE),
-('a1000000-0000-0000-0000-000000000010', 'Admin User',       'admin@traveloop.com',  '$2b$12$ADMINhash','https://i.pravatar.cc/150?img=10', 'en', TRUE);
+INSERT INTO users (id, name, email, password_hash, first_name, last_name, profile_photo, language, is_admin) VALUES
+('a1000000-0000-0000-0000-000000000001', 'Aarav Shah',       'aarav@example.com',    '$2b$12$KIXhash1', 'Aarav', 'Shah', 'https://i.pravatar.cc/150?img=1',  'en', FALSE),
+('a1000000-0000-0000-0000-000000000002', 'Priya Mehta',      'priya@example.com',    '$2b$12$KIXhash2', 'Priya', 'Mehta', 'https://i.pravatar.cc/150?img=2',  'en', FALSE),
+('a1000000-0000-0000-0000-000000000003', 'Rohan Verma',      'rohan@example.com',    '$2b$12$KIXhash3', 'Rohan', 'Verma', 'https://i.pravatar.cc/150?img=3',  'hi', FALSE),
+('a1000000-0000-0000-0000-000000000004', 'Sofia Patel',      'sofia@example.com',    '$2b$12$KIXhash4', 'Sofia', 'Patel', 'https://i.pravatar.cc/150?img=4',  'en', FALSE),
+('a1000000-0000-0000-0000-000000000005', 'Liam Chen',        'liam@example.com',     '$2b$12$KIXhash5', 'Liam', 'Chen', 'https://i.pravatar.cc/150?img=5',  'en', FALSE),
+('a1000000-0000-0000-0000-000000000006', 'Emma Nakamura',    'emma@example.com',     '$2b$12$KIXhash6', 'Emma', 'Nakamura', 'https://i.pravatar.cc/150?img=6',  'en', FALSE),
+('a1000000-0000-0000-0000-000000000007', 'Carlos Ramírez',   'carlos@example.com',   '$2b$12$KIXhash7', 'Carlos', 'Ramírez', 'https://i.pravatar.cc/150?img=7',  'es', FALSE),
+('a1000000-0000-0000-0000-000000000008', 'Aisha Khan',       'aisha@example.com',    '$2b$12$KIXhash8', 'Aisha', 'Khan', 'https://i.pravatar.cc/150?img=8',  'en', FALSE),
+('a1000000-0000-0000-0000-000000000009', 'Ethan Williams',   'ethan@example.com',    '$2b$12$KIXhash9', 'Ethan', 'Williams', 'https://i.pravatar.cc/150?img=9',  'en', FALSE),
+('a1000000-0000-0000-0000-000000000010', 'Admin User',       'admin@traveloop.com',  '$2b$12$ADMINhash', 'Admin', 'User', 'https://i.pravatar.cc/150?img=10', 'en', TRUE);
 
 -- ============================================================
 -- CITIES  (20 real cities with data)
@@ -107,15 +107,15 @@ INSERT INTO activities (city_id, name, category, description, duration_hours, co
 -- ============================================================
 -- TRIPS  (8 sample trips across different users)
 -- ============================================================
-INSERT INTO trips (id, user_id, name, description, start_date, end_date, is_public, share_token, total_budget, status) VALUES
-('b1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'European Dream',      'Paris, Barcelona & Rome in 14 days',          '2025-06-01', '2025-06-14', TRUE,  'share_EUR_dream_2025',   3500.00, 'planning'),
-('b1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', 'Southeast Asia Hop', 'Bali, Bangkok & Singapore adventure',          '2025-07-10', '2025-07-24', TRUE,  'share_SEA_hop_2025',     2200.00, 'planning'),
-('b1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003', 'Japan Deep Dive',    'Tokyo and Kyoto cultural immersion',           '2025-08-05', '2025-08-18', FALSE, NULL,                     4000.00, 'planning'),
-('b1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000004', 'Middle East Explorer','Dubai and Istanbul in 10 days',               '2025-09-01', '2025-09-10', TRUE,  'share_ME_explore_2025',  2800.00, 'planning'),
-('b1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000005', 'Oceania Adventure',  'Sydney and beyond',                           '2025-05-15', '2025-05-25', FALSE, NULL,                     3200.00, 'ongoing'),
-('b1000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000001', 'Morocco & Portugal', 'Marrakech and Lisbon in one trip',            '2024-10-01', '2024-10-12', TRUE,  'share_MP_2024',          1800.00, 'completed'),
-('b1000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000006', 'Greek Island Escape','Santorini sun and sea',                       '2025-08-20', '2025-08-27', TRUE,  'share_greek_2025',       2500.00, 'planning'),
-('b1000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000007', 'NYC & Cape Town',    'Contrasting cities across two hemispheres',   '2025-11-01', '2025-11-15', FALSE, NULL,                     5000.00, 'planning');
+INSERT INTO trips (id, user_id, name, description, destination, start_date, end_date, is_public, share_token, total_budget, status) VALUES
+('b1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'European Dream',      'Paris, Barcelona & Rome in 14 days',          'Paris, Barcelona', '2025-06-01', '2025-06-14', TRUE,  'share_EUR_dream_2025',   3500.00, 'planning'),
+('b1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', 'Southeast Asia Hop', 'Bali, Bangkok & Singapore adventure',          'Bali', '2025-07-10', '2025-07-24', TRUE,  'share_SEA_hop_2025',     2200.00, 'planning'),
+('b1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003', 'Japan Deep Dive',    'Tokyo and Kyoto cultural immersion',           'Tokyo', '2025-08-05', '2025-08-18', FALSE, NULL,                     4000.00, 'planning'),
+('b1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000004', 'Middle East Explorer','Dubai and Istanbul in 10 days',               'Istanbul', '2025-09-01', '2025-09-10', TRUE,  'share_ME_explore_2025',  2800.00, 'planning'),
+('b1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000005', 'Oceania Adventure',  'Sydney and beyond',                           'Sydney', '2025-05-15', '2025-05-25', FALSE, NULL,                     3200.00, 'ongoing'),
+('b1000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000001', 'Morocco & Portugal', 'Marrakech and Lisbon in one trip',            'Marrakech', '2024-10-01', '2024-10-12', TRUE,  'share_MP_2024',          1800.00, 'completed'),
+('b1000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000006', 'Greek Island Escape','Santorini sun and sea',                       'Santorini', '2025-08-20', '2025-08-27', TRUE,  'share_greek_2025',       2500.00, 'planning'),
+('b1000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000001', 'Quick NYC Trip',      'Business and pleasure in Manhattan',          'New York', '2024-03-01', '2024-03-05', FALSE, NULL,                     1500.00, 'completed');
 
 -- ============================================================
 -- TRIP STOPS
