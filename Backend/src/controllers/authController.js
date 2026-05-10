@@ -6,7 +6,7 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/token');
 const register = async (req, res, next) => {
   try {
     const validatedData = registerSchema.parse(req.body);
-    const { email, password, full_name } = validatedData;
+    const { email, password, name } = validatedData;
 
     // Check if user exists
     const userExists = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -19,8 +19,8 @@ const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await db.query(
-      'INSERT INTO users (email, password, full_name) VALUES ($1, $2, $3) RETURNING id, email, full_name, is_admin',
-      [email, hashedPassword, full_name]
+      'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, is_admin',
+      [email, hashedPassword, name]
     );
 
     const user = result.rows[0];
@@ -45,7 +45,8 @@ const login = async (req, res, next) => {
     const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    // ✅ Fixed: user.password_hash instead of user.password
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials',
@@ -55,8 +56,8 @@ const login = async (req, res, next) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Filter out password
-    const { password: _, ...userWithoutPassword } = user;
+    // ✅ Fixed: password_hash instead of password
+    const { password_hash: _, ...userWithoutPassword } = user;
 
     res.json({
       success: true,

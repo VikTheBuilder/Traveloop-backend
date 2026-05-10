@@ -3,8 +3,8 @@
 Comprehensive checklist for testing the Traveloop REST API.
 
 ## 1. Authentication & Authorization
-- [ ] **Registration**: Create a new user with valid data.
-- [ ] **Login**: Obtain JWT token with correct credentials.
+- [ ] **Registration**: Create a new user (Payload: `name`, `email`, `password`).
+- [ ] **Login**: Obtain JWT token (Payload: `email`, `password`).
 - [ ] **Token Validation**: Access protected route with valid token.
 - [ ] **Access Denied**: Access protected route without token (401).
 - [ ] **Invalid Token**: Access with malformed or expired token (401).
@@ -13,7 +13,7 @@ Comprehensive checklist for testing the Traveloop REST API.
 
 ## 2. User Profile Management
 - [ ] **Get Me**: Retrieve own profile data.
-- [ ] **Update Me**: Change name and language.
+- [ ] **Update Me**: Change `name`, `language`, or `profile_photo`.
 - [ ] **Profile Photo**: Upload a photo via Multer (multipart/form-data).
 - [ ] **Saved Destinations**: Add city to saved list.
 - [ ] **Delete Saved**: Remove city from saved list.
@@ -29,7 +29,7 @@ Comprehensive checklist for testing the Traveloop REST API.
 - [ ] **Activity Details**: Get specific activity by ID.
 
 ## 4. Trip Management (CRUD)
-- [ ] **Create Trip**: Create trip with title, dates, etc.
+- [ ] **Create Trip**: Create trip (Payload: `name`, `description`, `start_date`, `end_date`).
 - [ ] **List Trips**: Verify only own trips are returned.
 - [ ] **Trip Details**: Retrieve specific trip by UUID.
 - [ ] **Update Trip**: Modify trip metadata.

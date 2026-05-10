@@ -3,12 +3,12 @@ const db = require('../db');
 const getMe = async (req, res, next) => {
   try {
     const result = await db.query(
-      'SELECT id, email, full_name, photo_url, language, is_admin, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, profile_photo, language, is_admin, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     res.json({
       success: true,
-      data: user = result.rows[0],
+      data: result.rows[0],
     });
   } catch (err) {
     next(err);
@@ -17,16 +17,16 @@ const getMe = async (req, res, next) => {
 
 const updateMe = async (req, res, next) => {
   try {
-    const { full_name, language } = req.body;
-    let photo_url = req.body.photo_url;
+    const { name, language } = req.body;
+    let profile_photo = req.body.profile_photo;
 
     if (req.file) {
-      photo_url = `/uploads/${req.file.filename}`;
+      profile_photo = `/uploads/${req.file.filename}`;
     }
 
     const result = await db.query(
-      'UPDATE users SET full_name = COALESCE($1, full_name), language = COALESCE($2, language), photo_url = COALESCE($3, photo_url) WHERE id = $4 RETURNING id, email, full_name, photo_url, language',
-      [full_name, language, photo_url, req.user.id]
+      'UPDATE users SET name = COALESCE($1, name), language = COALESCE($2, language), profile_photo = COALESCE($3, profile_photo) WHERE id = $4 RETURNING id, email, name, profile_photo, language',
+      [name, language, profile_photo, req.user.id]
     );
 
     res.json({
@@ -54,7 +54,7 @@ const deleteMe = async (req, res, next) => {
 const getSavedDestinations = async (req, res, next) => {
   try {
     const result = await db.query(
-      'SELECT sd.*, c.name as city_name, c.country FROM saved_destinations sd JOIN cities c ON sd.city_id = c.id WHERE sd.user_id = $1',
+      'SELECT * FROM saved_destinations WHERE user_id = $1',
       [req.user.id]
     );
     res.json({
@@ -68,10 +68,71 @@ const getSavedDestinations = async (req, res, next) => {
 
 const addSavedDestination = async (req, res, next) => {
   try {
-    const { city_id } = req.body;
+    const {
+      city_name,
+      cityName,
+      city,
+      country,
+      countryName,
+      country_name,
+      city_id,
+      cityId,
+    } = req.body;
+
+    let cityNameValue =
+      (typeof city_name === 'string' && city_name.trim()) ||
+      (typeof cityName === 'string' && cityName.trim()) ||
+      (typeof city === 'string' && city.trim()) ||
+      '';
+
+    let countryValue =
+      (typeof country === 'string' && country.trim()) ||
+      (typeof countryName === 'string' && countryName.trim()) ||
+      (typeof country_name === 'string' && country_name.trim()) ||
+      '';
+
+    const cityIdValue =
+      (Number.isInteger(city_id) && city_id) ||
+      (Number.isInteger(cityId) && cityId) ||
+      null;
+
+    if (cityIdValue && (!cityNameValue || !countryValue)) {
+      const cityResult = await db.query(
+        'SELECT name, country FROM cities WHERE id = $1',
+        [cityIdValue]
+      );
+      if (cityResult.rows[0]) {
+        cityNameValue = cityNameValue || cityResult.rows[0].name;
+        countryValue = countryValue || cityResult.rows[0].country;
+      }
+    }
+
+    if (cityNameValue && !countryValue) {
+      const cityResult = await db.query(
+        'SELECT country FROM cities WHERE name ILIKE $1 ORDER BY id ASC LIMIT 1',
+        [cityNameValue]
+      );
+
+      if (!cityResult.rows[0]) {
+        const fuzzyCityResult = await db.query(
+          'SELECT country FROM cities WHERE name ILIKE $1 ORDER BY id ASC LIMIT 1',
+          [`%${cityNameValue}%`]
+        );
+        countryValue = fuzzyCityResult.rows[0]?.country || '';
+      } else {
+        countryValue = cityResult.rows[0].country;
+      }
+    }
+
+    if (!cityNameValue || !countryValue) {
+      return res.status(400).json({
+        success: false,
+        message: 'city_name and country are required',
+      });
+    }
     const result = await db.query(
-      'INSERT INTO saved_destinations (user_id, city_id) VALUES ($1, $2) RETURNING *',
-      [req.user.id, city_id]
+      'INSERT INTO saved_destinations (user_id, city_name, country) VALUES ($1, $2, $3) RETURNING *',
+      [req.user.id, cityNameValue, countryValue]
     );
     res.status(201).json({
       success: true,

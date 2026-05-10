@@ -14,7 +14,7 @@ const getStats = async (req, res, next) => {
 
 const listAllUsers = async (req, res, next) => {
   try {
-    const result = await db.query('SELECT id, email, full_name, is_admin, created_at FROM users ORDER BY created_at DESC');
+    const result = await db.query('SELECT id, email, name, is_admin, created_at FROM users ORDER BY created_at DESC');
     res.json({
       success: true,
       data: result.rows,

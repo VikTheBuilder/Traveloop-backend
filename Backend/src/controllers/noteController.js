@@ -19,10 +19,17 @@ const getNotes = async (req, res, next) => {
 const addNote = async (req, res, next) => {
   try {
     const { tripId } = req.params;
-    const { content } = req.body;
+    const { title, content, note_date, stop_id } = req.body;
+    const contentValue = typeof content === 'string' ? content.trim() : '';
+    if (!contentValue) {
+      return res.status(400).json({
+        success: false,
+        message: 'content is required',
+      });
+    }
     const result = await db.query(
-      'INSERT INTO trip_notes (trip_id, content) VALUES ($1, $2) RETURNING *',
-      [tripId, content]
+      'INSERT INTO trip_notes (trip_id, title, content, note_date, stop_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [tripId, title, contentValue, note_date, stop_id]
     );
     res.status(201).json({
       success: true,
@@ -37,10 +44,10 @@ const addNote = async (req, res, next) => {
 const updateNote = async (req, res, next) => {
   try {
     const { noteId } = req.params;
-    const { content } = req.body;
+    const { title, content, note_date, stop_id } = req.body;
     const result = await db.query(
-      'UPDATE trip_notes SET content = $1 WHERE id = $2 RETURNING *',
-      [content, noteId]
+      'UPDATE trip_notes SET title = COALESCE($1, title), content = COALESCE($2, content), note_date = COALESCE($3, note_date), stop_id = COALESCE($4, stop_id) WHERE id = $5 RETURNING *',
+      [title, content, note_date, stop_id, noteId]
     );
     res.json({
       success: true,

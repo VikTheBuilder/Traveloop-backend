@@ -20,9 +20,29 @@ const addItem = async (req, res, next) => {
   try {
     const { tripId } = req.params;
     const { item_name, category } = req.body;
+    const itemNameValue = typeof item_name === 'string' ? item_name.trim() : '';
+    if (!itemNameValue) {
+      return res.status(400).json({
+        success: false,
+        message: 'item_name is required',
+      });
+    }
+
+    // Normalize and validate category to match DB CHECK constraint
+    const rawCat = typeof category === 'string' ? category.trim().toLowerCase() : '';
+    let categoryValue = 'general';
+    if (rawCat) {
+      if (['clothing', 'clothes', 'apparel'].includes(rawCat)) categoryValue = 'clothing';
+      else if (['documents', 'document', 'docs', 'papers'].includes(rawCat)) categoryValue = 'documents';
+      else if (['electronics', 'electronic', 'gadgets'].includes(rawCat)) categoryValue = 'electronics';
+      else if (['toiletries', 'toiletry', 'toilets'].includes(rawCat)) categoryValue = 'toiletries';
+      else if (['general', 'misc', 'other', 'miscellaneous'].includes(rawCat)) categoryValue = 'general';
+      else categoryValue = 'general';
+    }
+
     const result = await db.query(
       'INSERT INTO packing_checklists (trip_id, item_name, category) VALUES ($1, $2, $3) RETURNING *',
-      [tripId, item_name, category]
+      [tripId, itemNameValue, categoryValue]
     );
     res.status(201).json({
       success: true,

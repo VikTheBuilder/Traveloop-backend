@@ -4,7 +4,7 @@ const getStops = async (req, res, next) => {
   try {
     const { tripId } = req.params;
     const result = await db.query(
-      'SELECT ts.*, c.name as city_name FROM trip_stops ts JOIN cities c ON ts.city_id = c.id WHERE ts.trip_id = $1 ORDER BY ts.order_index ASC',
+      'SELECT ts.*, c.name as city_name FROM trip_stops ts JOIN cities c ON ts.city_id = c.id WHERE ts.trip_id = $1 ORDER BY ts.stop_order ASC',
       [tripId]
     );
     res.json({
@@ -19,10 +19,29 @@ const getStops = async (req, res, next) => {
 const addStop = async (req, res, next) => {
   try {
     const { tripId } = req.params;
-    const { city_id, start_date, end_date, order_index } = req.body;
+    const { city_id, arrival_date, departure_date, stop_order } = req.body;
+    if (!city_id || !arrival_date || !departure_date) {
+      return res.status(400).json({
+        success: false,
+        message: 'city_id, arrival_date, and departure_date are required',
+      });
+    }
+    let stopOrderValue = Number.isInteger(stop_order)
+      ? stop_order
+      : Number.isInteger(Number(stop_order))
+        ? Number(stop_order)
+        : null;
+
+    if (stopOrderValue === null) {
+      const orderResult = await db.query(
+        'SELECT COALESCE(MAX(stop_order), 0) + 1 AS next_order FROM trip_stops WHERE trip_id = $1',
+        [tripId]
+      );
+      stopOrderValue = Number(orderResult.rows[0]?.next_order) || 1;
+    }
     const result = await db.query(
-      'INSERT INTO trip_stops (trip_id, city_id, start_date, end_date, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [tripId, city_id, start_date, end_date, order_index]
+      'INSERT INTO trip_stops (trip_id, city_id, arrival_date, departure_date, stop_order) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [tripId, city_id, arrival_date, departure_date, stopOrderValue]
     );
     res.status(201).json({
       success: true,
@@ -37,10 +56,10 @@ const addStop = async (req, res, next) => {
 const updateStop = async (req, res, next) => {
   try {
     const { stopId } = req.params;
-    const { start_date, end_date, order_index } = req.body;
+    const { arrival_date, departure_date, stop_order } = req.body;
     const result = await db.query(
-      'UPDATE trip_stops SET start_date = COALESCE($1, start_date), end_date = COALESCE($2, end_date), order_index = COALESCE($3, order_index) WHERE id = $4 RETURNING *',
-      [start_date, end_date, order_index, stopId]
+      'UPDATE trip_stops SET arrival_date = COALESCE($1, arrival_date), departure_date = COALESCE($2, departure_date), stop_order = COALESCE($3, stop_order) WHERE id = $4 RETURNING *',
+      [arrival_date, departure_date, stop_order, stopId]
     );
     res.json({
       success: true,
@@ -68,10 +87,33 @@ const deleteStop = async (req, res, next) => {
 const addActivityToStop = async (req, res, next) => {
   try {
     const { stopId } = req.params;
-    const { activity_id, planned_time, notes } = req.body;
+    const { activity_id, scheduled_date, start_time, notes } = req.body;
+    let scheduledDateValue = scheduled_date;
+
+    if (!activity_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'activity_id is required',
+      });
+    }
+
+    if (!scheduledDateValue) {
+      const stopResult = await db.query(
+        'SELECT arrival_date FROM trip_stops WHERE id = $1',
+        [stopId]
+      );
+      scheduledDateValue = stopResult.rows[0]?.arrival_date || null;
+    }
+
+    if (!scheduledDateValue) {
+      return res.status(400).json({
+        success: false,
+        message: 'scheduled_date is required',
+      });
+    }
     const result = await db.query(
-      'INSERT INTO stop_activities (stop_id, activity_id, planned_time, notes) VALUES ($1, $2, $3, $4) RETURNING *',
-      [stopId, activity_id, planned_time, notes]
+      'INSERT INTO stop_activities (stop_id, activity_id, scheduled_date, start_time, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [stopId, activity_id, scheduledDateValue, start_time, notes]
     );
     res.status(201).json({
       success: true,

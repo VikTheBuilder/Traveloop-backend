@@ -1,5 +1,5 @@
 const db = require('../db');
-const { crypto } = require('crypto');
+const crypto = require('crypto');
 
 const listTrips = async (req, res, next) => {
   try {
@@ -18,10 +18,17 @@ const listTrips = async (req, res, next) => {
 
 const createTrip = async (req, res, next) => {
   try {
-    const { title, description, start_date, end_date } = req.body;
+    const { name, description, start_date, end_date } = req.body;
+    const tripNameValue = typeof name === 'string' ? name.trim() : '';
+    if (!tripNameValue || !start_date || !end_date) {
+      return res.status(400).json({
+        success: false,
+        message: 'name, start_date, and end_date are required',
+      });
+    }
     const result = await db.query(
-      'INSERT INTO trips (user_id, title, description, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [req.user.id, title, description, start_date, end_date]
+      'INSERT INTO trips (user_id, name, description, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [req.user.id, tripNameValue, description, start_date, end_date]
     );
     res.status(201).json({
       success: true,
@@ -65,10 +72,10 @@ const getTripById = async (req, res, next) => {
 const updateTrip = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, start_date, end_date, is_public } = req.body;
+    const { name, description, start_date, end_date, is_public, cover_photo } = req.body;
     const result = await db.query(
-      'UPDATE trips SET title = COALESCE($1, title), description = COALESCE($2, description), start_date = COALESCE($3, start_date), end_date = COALESCE($4, end_date), is_public = COALESCE($5, is_public) WHERE id = $6 AND user_id = $7 RETURNING *',
-      [title, description, start_date, end_date, is_public, id, req.user.id]
+      'UPDATE trips SET name = COALESCE($1, name), description = COALESCE($2, description), start_date = COALESCE($3, start_date), end_date = COALESCE($4, end_date), is_public = COALESCE($5, is_public), cover_photo = COALESCE($6, cover_photo) WHERE id = $7 AND user_id = $8 RETURNING *',
+      [name, description, start_date, end_date, is_public, cover_photo, id, req.user.id]
     );
     res.json({
       success: true,
@@ -99,7 +106,7 @@ const shareTrip = async (req, res, next) => {
     const { shared_with_email } = req.body;
     
     // Simple share logic: update is_public or add to trip_shares
-    const shareToken = require('crypto').randomBytes(16).toString('hex');
+    const shareToken = crypto.randomBytes(16).toString('hex');
     
     await db.query(
       'UPDATE trips SET share_token = $1, is_public = true WHERE id = $2 AND user_id = $3',
@@ -107,10 +114,14 @@ const shareTrip = async (req, res, next) => {
     );
 
     if (shared_with_email) {
-      await db.query(
-        'INSERT INTO trip_shares (trip_id, shared_with_user_email) VALUES ($1, $2)',
-        [id, shared_with_email]
-      );
+      // Look up user by email
+      const userRes = await db.query('SELECT id FROM users WHERE email = $1', [shared_with_email]);
+      if (userRes.rows.length > 0) {
+        await db.query(
+          'INSERT INTO trip_shares (trip_id, shared_by, shared_with) VALUES ($1, $2, $3)',
+          [id, req.user.id, userRes.rows[0].id]
+        );
+      }
     }
 
     res.json({

@@ -16,7 +16,7 @@ const listActivities = async (req, res, next) => {
     }
     if (max_cost) {
       params.push(max_cost);
-      queryText += ` AND cost <= $${params.length}`;
+      queryText += ` AND cost_per_person <= $${params.length}`;
     }
 
     const result = await db.query(queryText, params);
