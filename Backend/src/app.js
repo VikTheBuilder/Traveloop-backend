@@ -26,6 +26,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cities', cityRoutes);
+app.use('/api/destinations', cityRoutes); // Alias for frontend compatibility
 app.use('/api/activities', activityRoutes);
 app.use('/api/trips', tripRoutes);
 

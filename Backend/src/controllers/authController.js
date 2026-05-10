@@ -6,7 +6,7 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/token');
 const register = async (req, res, next) => {
   try {
     const validatedData = registerSchema.parse(req.body);
-    const { email, password, name } = validatedData;
+    const { email, password, first_name, last_name, phone, city, country, additional_info, photo } = validatedData;
 
     // Check if user exists
     const userExists = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -18,9 +18,11 @@ const register = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const fullName = `${first_name} ${last_name}`;
+    
     const result = await db.query(
-      'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, is_admin',
-      [email, hashedPassword, name]
+      'INSERT INTO users (email, password_hash, name, first_name, last_name, phone, city, country, additional_info, profile_photo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, email, name, first_name, last_name, is_admin',
+      [email, hashedPassword, fullName, first_name, last_name, phone, city, country, additional_info, photo]
     );
 
     const user = result.rows[0];

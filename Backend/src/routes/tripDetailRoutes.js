@@ -16,12 +16,14 @@ router.get('/budget/alerts', budgetController.getBudgetAlerts);
 router.get('/packing', packingController.getPackingList);
 router.post('/packing', packingController.addItem);
 router.put('/packing/:itemId', packingController.updateItem);
+router.patch('/packing/:itemId', packingController.updateItem);
 router.delete('/packing/:itemId', packingController.deleteItem);
 
 // Notes
 router.get('/notes', noteController.getNotes);
 router.post('/notes', noteController.addNote);
 router.put('/notes/:noteId', noteController.updateNote);
+router.patch('/notes/:noteId', noteController.updateNote);
 router.delete('/notes/:noteId', noteController.deleteNote);
 
 module.exports = router;

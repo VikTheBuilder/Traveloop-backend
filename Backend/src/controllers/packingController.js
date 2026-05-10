@@ -19,8 +19,8 @@ const getPackingList = async (req, res, next) => {
 const addItem = async (req, res, next) => {
   try {
     const { tripId } = req.params;
-    const { item_name, category } = req.body;
-    const itemNameValue = typeof item_name === 'string' ? item_name.trim() : '';
+    const { item_name, name, category } = req.body;
+    const itemNameValue = (typeof item_name === 'string' && item_name.trim()) || (typeof name === 'string' && name.trim()) || '';
     if (!itemNameValue) {
       return res.status(400).json({
         success: false,
@@ -57,10 +57,12 @@ const addItem = async (req, res, next) => {
 const updateItem = async (req, res, next) => {
   try {
     const { itemId } = req.params;
-    const { is_packed, item_name } = req.body;
+    const { is_packed, checked, item_name, name } = req.body;
+    const packedValue = is_packed !== undefined ? is_packed : checked;
+    const nameValue = item_name || name;
     const result = await db.query(
       'UPDATE packing_checklists SET is_packed = COALESCE($1, is_packed), item_name = COALESCE($2, item_name) WHERE id = $3 RETURNING *',
-      [is_packed, item_name, itemId]
+      [packedValue, nameValue, itemId]
     );
     res.json({
       success: true,

@@ -10,5 +10,7 @@ router.use(admin);
 router.get('/stats', adminController.getStats);
 router.get('/users', adminController.listAllUsers);
 router.get('/trips', adminController.listAllTrips);
+router.get('/activities', adminController.listAllActivities);
+router.delete('/users/:id', adminController.deleteUser);
 
 module.exports = router;

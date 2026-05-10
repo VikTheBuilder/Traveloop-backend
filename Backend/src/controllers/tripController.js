@@ -18,17 +18,18 @@ const listTrips = async (req, res, next) => {
 
 const createTrip = async (req, res, next) => {
   try {
-    const { name, description, start_date, end_date } = req.body;
-    const tripNameValue = typeof name === 'string' ? name.trim() : '';
+    const { name, title, description, start_date, end_date } = req.body;
+    const tripNameValue = (typeof name === 'string' ? name.trim() : '') || (typeof title === 'string' ? title.trim() : '');
     if (!tripNameValue || !start_date || !end_date) {
       return res.status(400).json({
         success: false,
         message: 'name, start_date, and end_date are required',
       });
     }
+    const { destination } = req.body;
     const result = await db.query(
-      'INSERT INTO trips (user_id, name, description, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [req.user.id, tripNameValue, description, start_date, end_date]
+      'INSERT INTO trips (user_id, name, description, start_date, end_date, destination) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [req.user.id, tripNameValue, description, start_date, end_date, destination]
     );
     res.status(201).json({
       success: true,
@@ -72,10 +73,11 @@ const getTripById = async (req, res, next) => {
 const updateTrip = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, description, start_date, end_date, is_public, cover_photo } = req.body;
+    const { name, title, description, start_date, end_date, is_public, cover_photo, destination } = req.body;
+    const updateName = name || title;
     const result = await db.query(
-      'UPDATE trips SET name = COALESCE($1, name), description = COALESCE($2, description), start_date = COALESCE($3, start_date), end_date = COALESCE($4, end_date), is_public = COALESCE($5, is_public), cover_photo = COALESCE($6, cover_photo) WHERE id = $7 AND user_id = $8 RETURNING *',
-      [name, description, start_date, end_date, is_public, cover_photo, id, req.user.id]
+      'UPDATE trips SET name = COALESCE($1, name), description = COALESCE($2, description), start_date = COALESCE($3, start_date), end_date = COALESCE($4, end_date), is_public = COALESCE($5, is_public), cover_photo = COALESCE($6, cover_photo), destination = COALESCE($7, destination) WHERE id = $8 AND user_id = $9 RETURNING *',
+      [updateName, description, start_date, end_date, is_public, cover_photo, destination, id, req.user.id]
     );
     res.json({
       success: true,

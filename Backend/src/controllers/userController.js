@@ -3,7 +3,7 @@ const db = require('../db');
 const getMe = async (req, res, next) => {
   try {
     const result = await db.query(
-      'SELECT id, email, name, profile_photo, language, is_admin, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, first_name, last_name, phone, city, country, additional_info, profile_photo, language, is_admin, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     res.json({
@@ -17,16 +17,30 @@ const getMe = async (req, res, next) => {
 
 const updateMe = async (req, res, next) => {
   try {
-    const { name, language } = req.body;
-    let profile_photo = req.body.profile_photo;
+    const { name, first_name, last_name, phone, city, country, additional_info, language, profile_photo, photo } = req.body;
+    let photoValue = profile_photo || photo;
 
     if (req.file) {
-      profile_photo = `/uploads/${req.file.filename}`;
+      photoValue = `/uploads/${req.file.filename}`;
     }
 
+    // Build full name from parts if provided
+    const fullName = (first_name && last_name) ? `${first_name} ${last_name}` : name;
+
     const result = await db.query(
-      'UPDATE users SET name = COALESCE($1, name), language = COALESCE($2, language), profile_photo = COALESCE($3, profile_photo) WHERE id = $4 RETURNING id, email, name, profile_photo, language',
-      [name, language, profile_photo, req.user.id]
+      `UPDATE users SET 
+        name = COALESCE($1, name), 
+        first_name = COALESCE($2, first_name), 
+        last_name = COALESCE($3, last_name), 
+        phone = COALESCE($4, phone), 
+        city = COALESCE($5, city), 
+        country = COALESCE($6, country), 
+        additional_info = COALESCE($7, additional_info), 
+        language = COALESCE($8, language), 
+        profile_photo = COALESCE($9, profile_photo) 
+      WHERE id = $10 
+      RETURNING id, email, name, first_name, last_name, phone, city, country, additional_info, profile_photo, language, is_admin`,
+      [fullName, first_name, last_name, phone, city, country, additional_info, language, photoValue, req.user.id]
     );
 
     res.json({
@@ -68,16 +82,7 @@ const getSavedDestinations = async (req, res, next) => {
 
 const addSavedDestination = async (req, res, next) => {
   try {
-    const {
-      city_name,
-      cityName,
-      city,
-      country,
-      countryName,
-      country_name,
-      city_id,
-      cityId,
-    } = req.body;
+    const { city_name, cityName, city, country, countryName, country_name, city_id, cityId } = req.body;
 
     let cityNameValue =
       (typeof city_name === 'string' && city_name.trim()) ||
@@ -97,10 +102,7 @@ const addSavedDestination = async (req, res, next) => {
       null;
 
     if (cityIdValue && (!cityNameValue || !countryValue)) {
-      const cityResult = await db.query(
-        'SELECT name, country FROM cities WHERE id = $1',
-        [cityIdValue]
-      );
+      const cityResult = await db.query('SELECT name, country FROM cities WHERE id = $1', [cityIdValue]);
       if (cityResult.rows[0]) {
         cityNameValue = cityNameValue || cityResult.rows[0].name;
         countryValue = countryValue || cityResult.rows[0].country;
@@ -112,7 +114,6 @@ const addSavedDestination = async (req, res, next) => {
         'SELECT country FROM cities WHERE name ILIKE $1 ORDER BY id ASC LIMIT 1',
         [cityNameValue]
       );
-
       if (!cityResult.rows[0]) {
         const fuzzyCityResult = await db.query(
           'SELECT country FROM cities WHERE name ILIKE $1 ORDER BY id ASC LIMIT 1',
@@ -125,10 +126,7 @@ const addSavedDestination = async (req, res, next) => {
     }
 
     if (!cityNameValue || !countryValue) {
-      return res.status(400).json({
-        success: false,
-        message: 'city_name and country are required',
-      });
+      return res.status(400).json({ success: false, message: 'city_name and country are required' });
     }
     const result = await db.query(
       'INSERT INTO saved_destinations (user_id, city_name, country) VALUES ($1, $2, $3) RETURNING *',
